@@ -513,8 +513,36 @@ function showFinish() {
   document.getElementById('prog-fill').style.width = '100%';
   updateDots();
   const list = document.getElementById('tips-list');
-  list.innerHTML = '<h3>✅ Öğrendiklerin</h3>' +
-    GAMES.map(g => `<div class="tip-item"><span>${g.category.split(' ')[0]}</span><span>${g.tip.replace('✨ ','')}</span></div>`).join('');
+  
+  // Bilgileri temizleyip kategorilere göre ayıklıyoruz
+  const cleanTip = (text) => text.replace('✨ ', '').trim();
+  
+  const birGunOnce = GAMES.filter(g => g.category.includes("Bir Gün Önce")).map(g => cleanTip(g.tip));
+  const sinavSabahi = GAMES.filter(g => g.category.includes("Sınav Sabahı")).map(g => cleanTip(g.tip));
+  const sinavAninda = GAMES.filter(g => g.category.includes("Sınav Anında")).map(g => cleanTip(g.tip));
+
+  // HTML içeriğini 3 ana grup halinde inşa ediyoruz
+  let htmlContent = '<h3>✅ Öğrendiklerin</h3>';
+
+  // 1. Grup: Sınavdan Bir Gün Önce
+  htmlContent += `<div style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 800; color: #7C3AED;">📅 Sınavdan Bir Gün Önce;</div>`;
+  birGunOnce.forEach(tip => {
+    htmlContent += `<div class="tip-item"><span>•</span><span>${tip}</span></div>`;
+  });
+
+  // 2. Grup: Sınav Sabahı
+  htmlContent += `<div style="margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 800; color: #0D9488;">🌅 Sınav Sabahı;</div>`;
+  sinavSabahi.forEach(tip => {
+    htmlContent += `<div class="tip-item"><span>•</span><span>${tip}</span></div>`;
+  });
+
+  // 3. Grup: Sınav Anında
+  htmlContent += `<div style="margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 800; color: #D97706;">✏️ Sınav Anında;</div>`;
+  sinavAninda.forEach(tip => {
+    htmlContent += `<div class="tip-item"><span>•</span><span>${tip}</span></div>`;
+  });
+
+  list.innerHTML = htmlContent;
   showScreen('finish');
 }
 

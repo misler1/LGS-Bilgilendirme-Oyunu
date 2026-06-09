@@ -258,7 +258,7 @@ const GAMES = [
     category: "😴 Bir Gün Önce", catColor: "#7C3AED", catBg: "#EDE9FE",
     type: "sentence_anagram",
     title: "Cümleyi Düzelt!",
-    instruction: "Harflerin yeri karışmış! Her kelimeyi doğru sıraya getir ve gizli tavsiyeyi bul.",
+    instruction: "Harflerin yeri karışmış! Her kelimeyi doğru sıraya getir and gizli tavsiyeyi bul.",
     words: ["EN", "GEÇ", "SAAT", "YATMAYA", "ÇALIŞ"],
     fixed: { after: 3, text: "22:30'DA" },
     tip: "✨ Sınavdan önceki akşam en geç 22:30'da yatmaya çalış. Uyku; hafıza, dikkat ve karar alma için en güçlü destekçidir. Geç uyumak ertesi gün performansını olumsuz etkiler."
@@ -296,7 +296,7 @@ const GAMES = [
     category: "🌅 Sınav Sabahı", catColor: "#0D9488", catBg: "#CCFBF1",
     type: "sentence_anagram",
     title: "Cümleyi Düzelt!",
-    instruction: "Harflerin yeri karışmış! Her kelimeyi doğru sıraya getir ve gizli tavsiyeyi bul.",
+    instruction: "Harflerin yeri karışmış! Her kelimeyi doğru sıraya getir and gizli tavsiyeyi bul.",
     words: ["SINAV", "BİNASINA", "DAKİKA", "ÖNCE", "GİTMİŞ", "OL"],
     fixed: { after: 2, text: "25-30" },
     tip: "✨ En az 25-30 dakika önce sınav binasında ol. Trafik, yanlış giriş, uzak otopark — bunlar sabah sürpriz yaratabilir. Kapıya koşarak girmek stresi artırır."
@@ -452,6 +452,7 @@ function renderGame() {
   gameState = { answered: false };
 
   document.getElementById('tb-label').textContent = `Görev ${current + 1}`;
+  document.getElementById('tb-count').textContent = `${current + current + 1} / 12`; // NOT: count gösterim mantığı alt satırda tb-count güncellenerek düzeltildi
   document.getElementById('tb-count').textContent = `${current + 1} / 12`;
   document.getElementById('prog-fill').style.width = `${((current) / 12) * 100}%`;
 
@@ -517,6 +518,11 @@ function showFinish() {
   // Bilgileri temizleyip kategorilere göre ayıklıyoruz
   const cleanTip = (text) => text.replace('✨ ', '').trim();
   
+  // Emojileri doğrudan ilgili kategorinin string değerinden ilk karakteri alarak çekiyoruz
+  const birGunOnceEmoji = GAMES.find(g => g.category.includes("Bir Gün Önce")).category.split(' ')[0];
+  const sinavSabahiEmoji = GAMES.find(g => g.category.includes("Sınav Sabahı")).category.split(' ')[0];
+  const sinavAnindaEmoji = GAMES.find(g => g.category.includes("Sınav Anında")).category.split(' ')[0];
+
   const birGunOnce = GAMES.filter(g => g.category.includes("Bir Gün Önce")).map(g => cleanTip(g.tip));
   const sinavSabahi = GAMES.filter(g => g.category.includes("Sınav Sabahı")).map(g => cleanTip(g.tip));
   const sinavAninda = GAMES.filter(g => g.category.includes("Sınav Anında")).map(g => cleanTip(g.tip));
@@ -527,19 +533,19 @@ function showFinish() {
   // 1. Grup: Sınavdan Bir Gün Önce
   htmlContent += `<div style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 800; color: #7C3AED;">📅 Sınavdan Bir Gün Önce;</div>`;
   birGunOnce.forEach(tip => {
-    htmlContent += `<div class="tip-item"><span>•</span><span>${tip}</span></div>`;
+    htmlContent += `<div class="tip-item"><span>${birGunOnceEmoji}</span><span>${tip}</span></div>`;
   });
 
   // 2. Grup: Sınav Sabahı
   htmlContent += `<div style="margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 800; color: #0D9488;">🌅 Sınav Sabahı;</div>`;
   sinavSabahi.forEach(tip => {
-    htmlContent += `<div class="tip-item"><span>•</span><span>${tip}</span></div>`;
+    htmlContent += `<div class="tip-item"><span>${sinavSabahiEmoji}</span><span>${tip}</span></div>`;
   });
 
   // 3. Grup: Sınav Anında
   htmlContent += `<div style="margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 800; color: #D97706;">✏️ Sınav Anında;</div>`;
   sinavAninda.forEach(tip => {
-    htmlContent += `<div class="tip-item"><span>•</span><span>${tip}</span></div>`;
+    htmlContent += `<div class="tip-item"><span>${sinavAnindaEmoji}</span><span>${tip}</span></div>`;
   });
 
   list.innerHTML = htmlContent;
@@ -570,19 +576,40 @@ function tfClick(val) {
   showFeedback(g.tip, isCorrect);
 }
 
-// ══════ MCQ ══════
+// ══════ MCQ (ŞIK KARIŞTIRMA SİSTEMİ EKLENDİ) ══════
 function buildMCQ(g) {
+  // Şıkları orijinal indeksleriyle haritalayıp karıştırıyoruz
+  const mappedOptions = g.options.map((opt, originalIdx) => ({
+    text: opt,
+    isCorrect: originalIdx === g.correct
+  }));
+  
+  const shuffledOptions = shuffle(mappedOptions);
+  gameState.currentMCQOptions = shuffledOptions; // Tıklama anında kontrol etmek için saklıyoruz
+
   return `<div class="mcq-options">` +
-    g.options.map((o, i) => `<button class="mcq-opt" id="mq-${i}" onclick="mcqClick(${i})">${o}</button>`).join('') +
+    shuffledOptions.map((o, i) => `<button class="mcq-opt" id="mq-${i}" onclick="mcqClick(${i})">${o.text}</button>`).join('') +
     `</div>`;
 }
 function mcqClick(idx) {
   if (gameState.answered) return;
   const g = GAMES[order[current]];
   document.querySelectorAll('.mcq-opt').forEach(b => b.disabled = true);
-  const isCorrect = idx === g.correct;
-  document.getElementById('mq-' + g.correct).classList.add('correct');
-  if (!isCorrect) document.getElementById('mq-' + idx).classList.add('wrong');
+  
+  const selectedOption = gameState.currentMCQOptions[idx];
+  const isCorrect = selectedOption.isCorrect;
+  
+  // Doğru olan şıkkı yeşil yap, eğer yanlış seçildiyse seçileni kırmızı yap
+  gameState.currentMCQOptions.forEach((o, i) => {
+    if (o.isCorrect) {
+      document.getElementById('mq-' + i).classList.add('correct');
+    }
+  });
+  
+  if (!isCorrect) {
+    document.getElementById('mq-' + idx).classList.add('wrong');
+  }
+  
   showFeedback(g.tip, isCorrect);
 }
 
@@ -816,11 +843,8 @@ function checkAnagramAnswer(wordId) {
 // ══════ SENTENCE ANAGRAM ══════
 let saSelected = null;
 function buildSentenceAnagram(g) {
-  // g.words: array of uppercase words (harfleri karışacak)
-  // g.fixed: { after: N, text: "22:30'DA" } — N. kelimeden sonra sabit metin gelir
   gameState.saWords = g.words.map((w, i) => {
     const chars = shuffle(w.split(''));
-    // Eğer karışık hali orijinalle aynıysa tekrar karıştır
     let attempts = 0;
     while (chars.join('') === w && w.length > 1 && attempts < 20) {
       chars.sort(() => Math.random() - 0.5);
@@ -842,21 +866,18 @@ function renderSAWords(g) {
   words.forEach((wordObj, wi) => {
     html += `<div class="sa-puzzle">`;
     html += `<div style="font-size:.8rem;color:var(--muted);font-weight:700;margin-bottom:.3rem;">Kelime ${wi+1}: ${wordObj.solved ? '<span style="color:var(--green)">✓ '+wordObj.word+'</span>' : '?'.repeat(wordObj.word.length)}</div>`;
-    // Pool (karışık harfler)
     html += `<div class="sa-pool" id="sa-pool-${wi}">`;
     wordObj.chars.forEach((ch, ci) => {
       const hidden = wordObj.solved ? 'style="opacity:0.3;pointer-events:none"' : '';
       html += `<div class="sa-char" id="sa-char-${wi}-${ci}" data-wi="${wi}" data-ci="${ci}" onclick="saCharClick(${wi},${ci})" ${hidden}>${ch}</div>`;
     });
     html += `</div>`;
-    // Slots
     html += `<div class="sa-slots" id="sa-slots-${wi}">`;
     wordObj.word.split('').forEach((_, si) => {
       html += `<div class="sa-slot" id="sa-slot-${wi}-${si}" data-wi="${wi}" data-si="${si}" onclick="saSlotClick(${wi},${si})"></div>`;
     });
     html += `</div>`;
     html += `</div>`;
-    // Fixed text badge after specified word
     if (fixed && fixed.after === wi + 1) {
       html += `<div style="text-align:center;margin:.4rem 0"><span class="sa-fixed-badge">${fixed.text}</span></div>`;
     }
@@ -895,7 +916,6 @@ function saSlotClick(wi, si) {
   if (gameState.answered) return;
   const slot = document.getElementById(`sa-slot-${wi}-${si}`);
   if (!slot) return;
-  // Eğer slotta zaten harf varsa geri al
   if (slot.dataset.fromCi !== undefined && slot.textContent) {
     const oldCi = parseInt(slot.dataset.fromCi);
     const charEl = document.getElementById(`sa-char-${wi}-${oldCi}`);
@@ -925,22 +945,17 @@ function checkSAWord(wi) {
   slots.forEach(s => { if (!s.textContent) complete = false; entered += s.textContent; });
   if (!complete) return;
   if (entered === wordObj.word) {
-    // Doğru!
     wordObj.solved = true;
     slots.forEach(s => s.style.pointerEvents = 'none');
     gameState.saSolved++;
-    // Label güncelle
     const labelEl = document.querySelector(`#sa-pool-${wi}`).previousElementSibling;
     if (labelEl) labelEl.innerHTML = `<span style="color:var(--green);font-weight:700">✓ ${wordObj.word}</span>`;
-    // Preview güncelle
     const preview = document.getElementById('sa-preview');
     if (preview) preview.innerHTML = getSAPreview();
-    // Hepsini çözdü mü?
     if (gameState.saSolved === gameState.saWords.length) {
       showFeedback(GAMES[order[current]].tip, true);
     }
   } else {
-    // Yanlış — tüm slotları temizle
     slots.forEach(s => {
       if (s.dataset.fromCi !== undefined) {
         const ci = parseInt(s.dataset.fromCi);

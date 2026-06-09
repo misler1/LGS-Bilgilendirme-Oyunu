@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LGS'ye Hazır mısın? 🎯</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --purple: #7C3AED;
+    --purple-light: #EDE9FE;
+    --purple-mid: #A78BFA;
+    --teal: #0D9488;
+    --teal-light: #CCFBF1;
+    --amber: #D97706;
+    --amber-light: #FEF3C7;
+    --rose: #E11D48;
+    --rose-light: #FFE4E6;
+    --blue: #1D4ED8;
+    --blue-light: #DBEAFE;
+    --green: #16A34A;
+    --green-light: #DCFCE7;
+    --bg: #F5F3FF;
+    --card: #FFFFFF;
+    --text: #1E1B4B;
+    --muted: #6B7280;
+    --border: #E5E7EB;
+    --shadow: 0 4px 20px rgba(124,58,237,0.10);
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  #welcome {
+    align-items: center; justify-content: center; text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #EDE9FE 0%, #F0FDF4 50%, #FEF3C7 100%);
+  }
+  .welcome-emoji { font-size: 5rem; margin-bottom: 1rem; animation: bounce 2s infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .welcome-title { font-family: 'Baloo 2', cursive; font-size: 2.4rem; font-weight: 800; color: var(--purple); margin-bottom: .5rem; }
+  .welcome-sub { font-size: 1.1rem; color: var(--muted); margin-bottom: 2rem; max-width: 400px; line-height: 1.6; }
+  .progress-overview { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2rem; }
+  .prog-dot { width: 14px; height: 14px; border-radius: 50%; background: #D1D5DB; transition: background .3s; }
+  .prog-dot.done { background: var(--green); }
+  .prog-dot.current { background: var(--purple); animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3)} }
+  .btn-start { background: var(--purple); color: white; border: none; border-radius: 50px; padding: 1rem 3rem; font-family:'Baloo 2',cursive; font-size: 1.3rem; font-weight: 800; cursor: pointer; transition: transform .15s, box-shadow .15s; box-shadow: 0 6px 20px rgba(124,58,237,.4); }
+  .btn-start:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(124,58,237,.5); }
+  .btn-start:active { transform: scale(.97); }
+
+  #game-screen { flex-direction: column; }
+  .game-topbar { background: white; padding: .8rem 1.2rem; display: flex; align-items: center; gap: .8rem; box-shadow: 0 2px 8px rgba(0,0,0,.06); position: sticky; top: 0; z-index: 10; }
+  .topbar-back { background: none; border: 1.5px solid var(--border); border-radius: 50px; padding: .3rem .8rem; font-size: .85rem; cursor: pointer; color: var(--muted); font-family:'Nunito',sans-serif; }
+  .topbar-label { font-weight: 800; font-size: 1rem; color: var(--purple); flex: 1; text-align: center; }
+  .topbar-count { font-size: .85rem; color: var(--muted); white-space: nowrap; }
+  .game-progress-bar { height: 5px; background: var(--purple-light); }
+  .game-progress-fill { height: 5px; background: var(--purple); transition: width .5s ease; }
+
+  .game-area { flex: 1; padding: 1.2rem; max-width: 600px; margin: 0 auto; width: 100%; }
+  .game-card { background: white; border-radius: 20px; padding: 1.5rem; box-shadow: var(--shadow); margin-bottom: 1rem; }
+
+  .category-badge { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; font-weight: 700; padding: .3rem .8rem; border-radius: 50px; margin-bottom: .8rem; }
+  .game-title { font-family:'Baloo 2',cursive; font-size: 1.3rem; font-weight: 800; color: var(--text); margin-bottom: .4rem; }
+  .game-instruction { font-size: .95rem; color: var(--muted); margin-bottom: 1.2rem; line-height: 1.5; }
+
+  .feedback { display: none; border-radius: 14px; padding: 1rem 1.2rem; margin-top: 1rem; animation: slideUp .3s ease; }
+  @keyframes slideUp { from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .feedback.success { background: var(--green-light); border: 1.5px solid #86EFAC; }
+  .feedback.success .fb-title { color: var(--green); font-weight: 800; font-size: 1rem; }
+  .feedback.error { background: var(--rose-light); border: 1.5px solid #FB7185; }
+  .feedback.error .fb-title { color: var(--rose); font-weight: 800; font-size: 1rem; }
+  .feedback .fb-tip { font-size: .9rem; color: var(--text); margin-top: .3rem; line-height: 1.5; }
+  .btn-next { width: 100%; margin-top: .8rem; background: var(--purple); color: white; border: none; border-radius: 50px; padding: .85rem; font-family:'Baloo 2',cursive; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: transform .15s; }
+  .btn-next:hover { transform: translateY(-1px); }
+
+  #finish { align-items: center; justify-content: center; text-align: center; padding: 2rem;
+    background: linear-gradient(135deg, #EDE9FE, #F0FDF4); }
+  .finish-emoji { font-size: 5rem; margin-bottom: 1rem; animation: spin 1s ease; }
+  @keyframes spin { from{transform:rotate(-20deg)scale(.5)} to{transform:rotate(0)scale(1)} }
+  .finish-title { font-family:'Baloo 2',cursive; font-size: 2rem; font-weight: 800; color: var(--purple); margin-bottom: .5rem; }
+  .finish-sub { font-size: 1rem; color: var(--muted); margin-bottom: 1.5rem; max-width: 360px; line-height: 1.6; }
+  .tips-summary { background: white; border-radius: 16px; padding: 1.2rem; text-align: left; max-width: 480px; width: 100%; box-shadow: var(--shadow); margin-bottom: 1.5rem; }
+  .tips-summary h3 { font-size: .85rem; font-weight: 700; color: var(--muted); margin-bottom: .8rem; letter-spacing: .04em; text-transform: uppercase; }
+  .tip-item { display: flex; gap: .6rem; align-items: flex-start; margin-bottom: .6rem; font-size: .9rem; line-height: 1.4; }
+  .tip-item span:first-child { flex-shrink: 0; }
+  .btn-restart { background: var(--purple); color: white; border: none; border-radius: 50px; padding: .9rem 2.5rem; font-family:'Baloo 2',cursive; font-size: 1.1rem; font-weight: 800; cursor: pointer; }
+
+  .sort-items { display: flex; flex-direction: column; gap: .5rem; }
+  .sort-item { background: var(--purple-light); border: 2px solid transparent; border-radius: 12px; padding: .75rem 1rem; cursor: pointer; font-weight: 700; font-size: .95rem; transition: all .2s; display: flex; align-items: center; gap: .6rem; user-select: none; }
+  .sort-item:hover { border-color: var(--purple-mid); }
+  .sort-item.selected { background: var(--purple); color: white; border-color: var(--purple); }
+  .sort-item.placed { background: var(--green-light); border-color: #86EFAC; cursor: default; }
+  .sort-item .sort-num { width: 26px; height: 26px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 900; color: var(--purple); flex-shrink: 0; }
+  .sort-item.placed .sort-num { color: var(--green); }
+
+  .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .match-col { display: flex; flex-direction: column; gap: .5rem; }
+  .match-item { border-radius: 12px; padding: .7rem .9rem; cursor: pointer; font-size: .9rem; font-weight: 700; border: 2px solid transparent; transition: all .2s; text-align: center; line-height: 1.3; }
+  .match-left { background: #EDE9FE; color: var(--purple); }
+  .match-right { background: #F0FDF4; color: var(--green); }
+  .match-item:hover { transform: scale(1.03); }
+  .match-item.selected { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(124,58,237,.2); }
+  .match-item.matched { opacity: .5; cursor: default; border-color: var(--green); }
+  .match-item.wrong { animation: shake .4s; border-color: var(--rose); background: var(--rose-light); }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+  .tf-statement { background: var(--amber-light); border-radius: 14px; padding: 1.2rem; font-size: 1.05rem; font-weight: 700; color: #92400E; text-align: center; margin-bottom: 1.2rem; border: 2px solid #FDE68A; line-height: 1.5; }
+  .tf-buttons { display: flex; gap: .8rem; }
+  .tf-btn { flex: 1; padding: .9rem; border-radius: 12px; border: 2px solid var(--border); background: white; font-family:'Baloo 2',cursive; font-size: 1.2rem; font-weight: 800; cursor: pointer; transition: all .2s; }
+  .tf-btn.correct-pick { background: var(--green-light); border-color: var(--green); color: var(--green); }
+  .tf-btn.wrong-pick { background: var(--rose-light); border-color: var(--rose); color: var(--rose); animation: shake .4s; }
+  .tf-btn:disabled { cursor: default; }
+
+  .memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }
+  .mem-card { aspect-ratio: 1; border-radius: 10px; cursor: pointer; position: relative; perspective: 600px; }
+  .mem-card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform .4s; }
+  .mem-card.flipped .mem-card-inner, .mem-card.matched .mem-card-inner { transform: rotateY(180deg); }
+  .mem-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; }
+  .mem-back { background: var(--purple); color: white; font-size: 1.8rem; }
+  .mem-front { background: white; border: 2px solid var(--border); transform: rotateY(180deg); font-size: .9rem; text-align: center; padding: .3rem; line-height: 1.3; color: var(--text); }
+  .mem-card.matched .mem-front { background: var(--green-light); border-color: var(--green); }
+
+  .fill-sentence { font-size: 1.1rem; font-weight: 700; line-height: 2; color: var(--text); margin-bottom: 1rem; }
+  .fill-blank { display: inline-block; border-bottom: 3px solid var(--purple); min-width: 80px; text-align: center; color: var(--purple); font-weight: 900; }
+  .fill-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .fill-opt { background: var(--purple-light); border: 2px solid transparent; border-radius: 50px; padding: .4rem 1rem; font-size: .9rem; font-weight: 700; cursor: pointer; transition: all .2s; color: var(--purple); }
+  .fill-opt:hover { border-color: var(--purple-mid); }
+  .fill-opt.selected-correct { background: var(--green-light); border-color: var(--green); color: var(--green); }
+  .fill-opt.selected-wrong { background: var(--rose-light); border-color: var(--rose); color: var(--rose); animation: shake .4s; }
+  .fill-opt:disabled { cursor: default; }
+
+  .anagram-puzzle { margin-bottom: 1.2rem; }
+  .anagram-scrambled-pool { background: var(--amber-light); border-radius: 12px; padding: 1rem; border: 2px solid #FDE68A; margin-bottom: .6rem; display: flex; flex-wrap: wrap; gap: .4rem; min-height: 50px; }
+  .anagram-char { background: white; border: 2px solid #D97706; border-radius: 8px; padding: .4rem .6rem; font-weight: 900; font-size: 1.1rem; cursor: pointer; user-select: none; transition: all .2s; color: #92400E; }
+  .anagram-char:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3); }
+  .anagram-char.selected { outline: 3px solid var(--purple); background: var(--purple-light); }
+  .anagram-slots { display: flex; gap: .3rem; justify-content: center; margin-bottom: .8rem; flex-wrap: wrap; }
+  .anagram-slot { width: 44px; height: 44px; border: 2px solid #D97706; border-radius: 8px; background: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; cursor: pointer; color: #92400E; transition: all .2s; }
+  .anagram-slot:hover { background: #FEF3C7; }
+  .anagram-slot.filled { background: #DCFCE7; border-color: var(--green); }
+  .anagram-answer { font-size: 1rem; text-align: center; padding: .5rem; background: var(--green-light); border-radius: 8px; }
+
+  .slider-q { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1rem; line-height: 1.5; }
+  .slider-wrap { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+  .slider-val { font-family:'Baloo 2',cursive; font-size: 2rem; font-weight: 800; color: var(--purple); }
+  .slider-unit { font-size: .9rem; color: var(--muted); margin-top: -.3rem; }
+  input[type=range] { width: 100%; accent-color: var(--purple); height: 6px; border-radius: 50px; }
+  .slider-labels { display: flex; justify-content: space-between; width: 100%; font-size: .8rem; color: var(--muted); }
+  .btn-check { width: 100%; margin-top: 1rem; background: var(--teal); color: white; border: none; border-radius: 50px; padding: .8rem; font-family:'Baloo 2',cursive; font-size: 1.05rem; font-weight: 800; cursor: pointer; }
+
+  .mcq-options { display: flex; flex-direction: column; gap: .6rem; }
+  .mcq-opt { border-radius: 12px; border: 2px solid var(--border); background: white; padding: .8rem 1rem; font-size: .95rem; font-weight: 700; cursor: pointer; transition: all .2s; text-align: left; font-family:'Nunito',sans-serif; }
+  .mcq-opt:hover { border-color: var(--purple-mid); background: var(--purple-light); }
+  .mcq-opt.correct { background: var(--green-light); border-color: var(--green); color: var(--green); }
+  .mcq-opt.wrong { background: var(--rose-light); border-color: var(--rose); color: var(--rose); animation: shake .4s; }
+  .mcq-opt:disabled { cursor: default; }
+
+  .sa-puzzle { margin-bottom: 1rem; }
+  .sa-fixed-badge { display: inline-block; background: #7C3AED; color: white; border-radius: 8px; padding: .35rem .7rem; font-weight: 900; font-size: 1.1rem; margin: .2rem; letter-spacing: .03em; }
+  .sa-word-block { display: inline-flex; flex-direction: column; align-items: center; margin: .3rem .2rem; vertical-align: top; }
+  .sa-pool { display: flex; flex-wrap: wrap; gap: .3rem; background: var(--amber-light); border: 2px solid #FDE68A; border-radius: 10px; padding: .5rem; min-height: 40px; justify-content: center; }
+  .sa-slots { display: flex; flex-wrap: wrap; gap: .2rem; justify-content: center; margin-top: .3rem; }
+  .sa-char { background: white; border: 2px solid #D97706; border-radius: 6px; padding: .3rem .5rem; font-weight: 900; font-size: 1rem; cursor: pointer; user-select: none; color: #92400E; transition: all .2s; min-width: 28px; text-align: center; }
+  .sa-char:hover { transform: scale(1.07); }
+  .sa-char.selected { outline: 3px solid var(--purple); background: var(--purple-light); }
+  .sa-slot { min-width: 28px; height: 36px; border: 2px solid #D97706; border-radius: 6px; background: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1rem; cursor: pointer; color: #92400E; transition: all .2s; padding: 0 .3rem; }
+  .sa-slot:hover { background: #FEF3C7; }
+  .sa-slot.filled { background: #DCFCE7; border-color: var(--green); }
+  .sa-answer { font-size: .95rem; text-align: center; padding: .4rem; background: var(--green-light); border-radius: 8px; margin-top: .3rem; font-weight: 700; color: var(--green); display: none; }
+  .sa-sentence-preview { background: var(--purple-light); border-radius: 12px; padding: .8rem 1rem; margin-bottom: 1rem; font-size: 1rem; font-weight: 700; color: var(--purple); text-align: center; line-height: 2; letter-spacing: .03em; min-height: 48px; }
+  .sa-sentence-preview .sa-solved { color: var(--green); }
+
+  .logo-fixed { display: none; }
+
+  @media(max-width:400px) {
+    .match-item { font-size: .8rem; padding: .55rem .6rem; }
+    .welcome-title { font-size: 1.9rem; }
+  }
+</style>
+</head>
+<body>
+<div class="logo-fixed"><img src="logo.png" alt="Logo"></div>
+
+<div id="welcome" class="screen active">
+  <div class="page-logo"><img src="logo.png" alt="Logo"></div>
+  <div class="welcome-emoji">🎯</div>
+  <h1 class="welcome-title">LGS'ye Hazır mısın?</h1>
+  <p class="welcome-sub">12 eğlenceli mini görev, 12 altın tavsiye. Her birini tamamladıkça sınava bir adım daha yaklaşıyorsun!</p>
+  <div class="progress-overview" id="dot-bar"></div>
+  <button class="btn-start" onclick="startGame()">Hadi Başlayalım! 🚀</button>
+</div>
+
+<div id="game-screen" class="screen">
+  <div class="game-topbar">
+    <button class="topbar-back" onclick="goWelcome()">← Geri</button>
+    <div class="topbar-label" id="tb-label">Görev 1</div>
+    <div class="topbar-count" id="tb-count">1 / 12</div>
+  </div>
+  <div class="game-progress-bar"><div class="game-progress-fill" id="prog-fill"></div></div>
+  <div class="game-area" id="game-area"></div>
+</div>
+
+<div id="finish" class="screen">
+  <div class="page-logo"><img src="logo.png" alt="Logo"></div>
+  <div class="finish-emoji">🏆</div>
+  <h2 class="finish-title">Muhteşemsin!</h2>
+  <p class="finish-sub">12 görevi de tamamladın. İşte sana özel LGS rehberin — bunları aklında tut!</p>
+  <div class="tips-summary" id="tips-list"></div>
+  <button class="btn-restart" onclick="restartGame()">🔄 Tekrar Oyna</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// VERİ: 12 mini oyun — LGS kart içerikleriyle
+// ══════════════════════════════════════════════
+const GAMES = [
+
+  // 1 — DOĞRU/YANLIŞ | Bir gün önce: yeni konu çalışma
+  {
+    category: "📅 Bir Gün Önce", catColor: "#7C3AED", catBg: "#EDE9FE",
+    type: "tf",
+    title: "Doğru mu, Yanlış mı?",
+    instruction: "Aşağıdaki ifadeyi okuyun ve doğru olup olmadığına karar verin.",
+    statement: "LGS'den bir gün önce hiç bilmediğim yeni konuları çalışmalıyım — ne kadar çok, o kadar iyi!",
+    answer: false,
+    tip: "✨ Son günde yeni konu öğrenmek kafa karışıklığı ve strese neden olur. Bu gün tekrar günü değil, dinlenme günüdür. Zihnin ve bedenini dinlendir."
+  },
+
+  // 2 — MCQ | Bir gün önce: çanta hazırlığı
+  {
+    category: "📅 Bir Gün Önce", catColor: "#7C3AED", catBg: "#EDE9FE",
+    type: "mcq",
+    title: "En doğru davranış hangisi?",
+    instruction: "Sınav öncesi akşam için doğru seçeneği işaretle.",
+    options: [
+      "Çantamı sınav sabahı hazırlarım, vakti var",
+      "Kimliğimi, giriş belgemi, kalemimi, silgimi ve kalemtıraşımı akşamdan hazırlarım",
+      "Sadece kalemi ve silgiyi hazırlarım, diğerleri hiç önemli değil",
+      "Zaten her şey çantamda, kontrol etmeme gerek yok"
+    ],
+    correct: 1,
+    tip: "✨ Kimlik, sınav giriş belgesi, kalem, silgi, kalemtıraş — hepsini akşamdan hazırla. Bu hazırlığı sabah yapmak gereksiz stres sebebi ve vakit kaybıdır."
+  },
+
+  // 3 — ANAGRAM | Bir gün önce: uyku saati
+  {
+    category: "😴 Bir Gün Önce", catColor: "#7C3AED", catBg: "#EDE9FE",
+    type: "sentence_anagram",
+    title: "Cümleyi Düzelt!",
+    instruction: "Harflerin yeri karışmış! Her kelimeyi doğru sıraya getir ve gizli tavsiyeyi bul.",
+    words: ["EN", "GEÇ", "SAAT", "YATMAYA", "ÇALIŞ"],
+    fixed: { after: 3, text: "22:30'DA" },
+    tip: "✨ Sınavdan önceki akşam en geç 22:30'da yatmaya çalış. Uyku; hafıza, dikkat ve karar alma için en güçlü destekçidir. Geç uyumak ertesi gün performansını olumsuz etkiler."
+  },
+
+  // 4 — DOĞRU/YANLIŞ | Bir gün önce: sosyal medya
+  {
+    category: "📅 Bir Gün Önce", catColor: "#7C3AED", catBg: "#EDE9FE",
+    type: "tf",
+    title: "Doğru mu, Yanlış mı?",
+    instruction: "Aşağıdaki ifadeyi değerlendirin.",
+    statement: "Sınav öncesi akşam sosyal medyadan sınav ile ilgili konuları takip etmem. Göreceğim, duyacağım bir şey beni olumsuz etkileyebilir",
+    answer: true,
+    tip: "✨ Başkalarının paylaşımları gereksiz karşılaştırma ve kaygıya neden olur. Sınavdan önceki akşam telefonla ilgilenme. Dinlen ve kendine odaklan — herkesin yolu farklıdır."
+  },
+
+  // 5 — MCQ | Sınav sabahı: kahvaltı
+  {
+    category: "🌅 Sınav Sabahı", catColor: "#0D9488", catBg: "#CCFBF1",
+    type: "mcq",
+    title: "Sınav sabahı kahvaltıda ne yapmalısın?",
+    instruction: "En doğru seçeneği işaretle.",
+    options: [
+      "Aç karnına gideyim, midem doluyken konsantre olamam",
+      "Çok enerji lazım, aşırı yağlı ve fast food tarzı yiyecekler yiyeyim",
+      "Yumurta, peynir, ekmek gibi hafif ve alışık olduğum gıdalar yiyeyim",
+      "Sadece bir bardak meyve suyu içip çıkayım"
+    ],
+    correct: 2,
+    tip: "✨ Kahvaltını mutlaka yap ama mideni zorlama. Hafif, alışık olduğun ve dengeli bir kahvaltı beyin performansını destekler. Alışık olmadığın veya ağır yiyeceklerden sınav sabahı uzak dur."
+  },
+
+  // 6 — ANAGRAM | Sınav sabahı: kaç dakika önce binada ol
+  {
+    category: "🌅 Sınav Sabahı", catColor: "#0D9488", catBg: "#CCFBF1",
+    type: "sentence_anagram",
+    title: "Cümleyi Düzelt!",
+    instruction: "Harflerin yeri karışmış! Her kelimeyi doğru sıraya getir ve gizli tavsiyeyi bul.",
+    words: ["SINAV", "BİNASINA", "DAKİKA", "ÖNCE", "VARIL"],
+    fixed: { after: 2, text: "20-30" },
+    tip: "✨ En az 20-30 dakika önce sınav binasında ol. Trafik, yanlış giriş, uzak otopark — bunlar sabah sürpriz yaratabilir. Kapıya koşarak girmek stresi artırır."
+  },
+
+  // 7 — EŞLEŞTİRME | Sınav sabahı: yapılacaklar & yapılmayacaklar
+  {
+    category: "🌅 Sınav Sabahı", catColor: "#0D9488", catBg: "#CCFBF1",
+    type: "match",
+    title: "Eşleştir!",
+    instruction: "Sınav sabahı durumlarını doğru tepkiyle eşleştir.",
+    pairs: [
+      ["Gerginlik hissedersen", "Nefes egzersizi yap"],
+      ["Hafif ve dengeli bir", "Kahvaltı yap"],
+      ["Son dakika ders çalışmak", "Stresi artırır ve zihni karıştırır"],
+      ["Yola çıkmadan önce", "Kimlik ve giriş belgesini kontrol et"]
+    ],
+    tip: "✨ Sınav sabahı rutinine sadık kalmak; sakin, tok ve dinç olmak başarına katkı sağlar. Son dakika yeni şeyler öğrenmeye çalışmak yalnızca kafa karıştırır."
+  },
+
+  // 8 — BOŞLUK DOLDUR | Sınav sabahı: nefes egzersizi
+  {
+    category: "🌅 Sınav Sabahı", catColor: "#0D9488", catBg: "#CCFBF1",
+    type: "fill",
+    title: "Doğru adımı bul!",
+    instruction: "Nefes egzersizinin doğru sırasını tamamla.",
+    before: "4 say nefes al → 4 say ",
+    blank: "tut",
+    after: " → 4 say ver. Birkaç kez tekrarla.",
+    options: ["tut", "ver", "unut", "bırak"],
+    tip: "✨ 4-4-4 nefes tekniği kaygıyı hızla azaltmaya yardımcı olur. Beden sakinleşince zihin de toparlanır. Bu tekniği bekleme sırasında veya sınav içinde her an kullanabilirsin."
+  },
+
+  // 9 — DOĞRU/YANLIŞ | Sınav anında: takılıp kalma
+  {
+    category: "✏️ Sınav Anında", catColor: "#D97706", catBg: "#FEF3C7",
+    type: "tf",
+    title: "Doğru mu, Yanlış mı?",
+    instruction: "Aşağıdaki ifadeyi değerlendirin.",
+    statement: "Zor bir soruda uzun süre uğraşmak, o soruyu mutlaka çözeceğim anlamına gelmez ve bu zamanı verimsiz kullanmata neden olur.",
+    answer: true,
+    tip: "✨ Bir soruda takıldığında işaret koy ve ilerle. Bildiğin soruları kaçırmak, bilmediğin bir soruda ısrar etmekten çok daha büyük kayıptır. Takıldığın soruları en sona bırak, diğer soruları çözdükten sonra dönersin."
+  },
+
+  // 10 — MCQ | Sınav anında: zor soruda iç ses
+  {
+    category: "✏️ Sınav Anında", catColor: "#D97706", catBg: "#FEF3C7",
+    type: "mcq",
+    title: "Zor bir soruyla karşılaştığında ne düşünmelisin?",
+    instruction: "En sağlıklı iç sesi seç.",
+    options: [
+      "\"Yapamıyorum, olmayacak! Her şey mahvoldu.\"",
+      "\"Bu soru zor geldi ama diğer soruları yapabilirim.\"",
+      "\"Herkes bu soruyu çözüyor, ben neden çözemiyorum?\"",
+      "\"Bütün sorular zor, hiçbirini yapamayacağım.\""
+    ],
+    correct: 1,
+    tip: "✨ Zihin duyduğuna inanır. \"Bu soru zor geldi, ama diğerlerini yapabilirim\" demek seni toplar ve devam ettirir. Kendine adil ve yapıcı davran."
+  },
+
+  // 11 — EŞLEŞTİRME | Sınav anında: cevap değiştirme ve zaman
+  {
+    category: "✏️ Sınav Anında", catColor: "#D97706", catBg: "#FEF3C7",
+    type: "match",
+    title: "Eşleştir!",
+    instruction: "Sınav anı durumlarını doğru davranışla eşleştir.",
+    pairs: [
+      ["Cevabı değiştirmek istediğinde", "Kesin emin değilsen değiştirme"],
+      ["Bir soruda takılırsan", "İşaret koy, sonraki soruya geç"],
+      ["Stres hissedersen", "Dur; 4 saniye nefes al, 4 saniye tut, 4 saniye ver"],
+      ["Son 10 dakikada", "Optik formu kontrol et"]
+    ],
+    tip: "✨ İlk içgüdün çoğunlukla doğrudur. Cevabı kesin bir sebep olmadan değiştirme. Zamanı iyi yönet ve son dakikada optik formu mutlaka gözden geçir."
+  },
+
+  // 12 — DOĞRU/YANLIŞ | Sınav anında: sözel oturumdan sonra
+  {
+    category: "✏️ Sınav Anında", catColor: "#D97706", catBg: "#FEF3C7",
+    type: "tf",
+    title: "Doğru mu, Yanlış mı?",
+    instruction: "Aşağıdaki ifadeyi değerlendirin.",
+    statement: "Sözel oturumdan çıkınca sorularla ilgili değerlendirme yapmalıyım. Emin olmadığım sorularla ilgili uzun uzun düşüneyim.",
+    answer: false,
+    tip: "✨ Sözel oturum bitti, değiştirebileceğin hiçbir şey yok. Soruları kafanda çözmeye devam etmek seni yorar ve sayısal oturuma gergin girmene neden olur. Ne olursa olsun zihnini boşalt, bir sonraki oturuma taze başla."
+  }
+
+];
+
+// ══════════════════════════════════════════════
+// MOTOR — değiştirilmedi
+// ══════════════════════════════════════════════
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+let order = [];
+let current = 0;
+let gameState = {};
+
+function buildDots() {
+  const bar = document.getElementById('dot-bar');
+  bar.innerHTML = '';
+  for (let i = 0; i < 12; i++) {
+    const d = document.createElement('div');
+    d.className = 'prog-dot';
+    d.id = 'dot-' + i;
+    bar.appendChild(d);
+  }
+}
+
+function updateDots() {
+  for (let i = 0; i < 12; i++) {
+    const d = document.getElementById('dot-' + i);
+    if (!d) continue;
+    d.className = 'prog-dot' + (i < current ? ' done' : i === current ? ' current' : '');
+  }
+}
+
+function startGame() {
+  order = shuffle([...Array(12).keys()]);
+  current = 0;
+  showScreen('game-screen');
+  renderGame();
+}
+
+function restartGame() {
+  order = shuffle([...Array(12).keys()]);
+  current = 0;
+  showScreen('welcome');
+  updateDots();
+}
+
+function goWelcome() {
+  updateDots();
+  showScreen('welcome');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function renderGame() {
+  const idx = order[current];
+  const g = GAMES[idx];
+  const area = document.getElementById('game-area');
+  area.innerHTML = '';
+  gameState = { answered: false };
+
+  document.getElementById('tb-label').textContent = `Görev ${current + 1}`;
+  document.getElementById('tb-count').textContent = `${current + 1} / 12`;
+  document.getElementById('prog-fill').style.width = `${((current) / 12) * 100}%`;
+
+  const card = document.createElement('div');
+  card.className = 'game-card';
+
+  const badge = `<div class="category-badge" style="background:${g.catBg};color:${g.catColor}">${g.category}</div>`;
+  const title = `<div class="game-title">${g.title}</div>`;
+  const instr = `<div class="game-instruction">${g.instruction}</div>`;
+
+  let inner = '';
+  if (g.type === 'tf')      inner = buildTF(g);
+  else if (g.type === 'mcq')   inner = buildMCQ(g);
+  else if (g.type === 'match')  inner = buildMatch(g);
+  else if (g.type === 'slider') inner = buildSlider(g);
+  else if (g.type === 'fill')   inner = buildFill(g);
+  else if (g.type === 'memory') inner = buildMemory(g);
+  else if (g.type === 'anagram') inner = buildAnagram(g);
+  else if (g.type === 'sentence_anagram') inner = buildSentenceAnagram(g);
+
+  card.innerHTML = badge + title + instr + inner + `
+    <div class="feedback success" id="fb">
+      <div class="fb-title">🎉 Harika iş!</div>
+      <div class="fb-tip" id="fb-tip"></div>
+    </div>
+    <button class="btn-next" id="btn-next" style="display:none" onclick="nextGame()">
+      ${current < 11 ? 'Sonraki Görev →' : 'Bitir! 🏆'}
+    </button>
+  `;
+  area.appendChild(card);
+}
+
+function showFeedback(tip, isSuccess = true) {
+  gameState.answered = true;
+  const fb = document.getElementById('fb');
+  const fbTitle = document.querySelector('.fb-title');
+  fb.style.display = 'block';
+  if (isSuccess) {
+    fb.classList.remove('error'); fb.classList.add('success');
+    fbTitle.textContent = '🎉 Harika iş!';
+  } else {
+    fb.classList.remove('success'); fb.classList.add('error');
+    fbTitle.textContent = '❌ Hay aksi! Öyle değil!';
+  }
+  document.getElementById('fb-tip').textContent = tip;
+  document.getElementById('btn-next').style.display = 'block';
+  fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function nextGame() {
+  current++;
+  if (current >= 12) { showFinish(); return; }
+  updateDots();
+  renderGame();
+  document.getElementById('game-area').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showFinish() {
+  document.getElementById('prog-fill').style.width = '100%';
+  updateDots();
+  const list = document.getElementById('tips-list');
+  list.innerHTML = '<h3>✅ Öğrendiklerin</h3>' +
+    GAMES.map(g => `<div class="tip-item"><span>${g.category.split(' ')[0]}</span><span>${g.tip.replace('✨ ','')}</span></div>`).join('');
+  showScreen('finish');
+}
+
+// ══════ TF ══════
+function buildTF(g) {
+  return `<div class="tf-statement">"${g.statement}"</div>
+    <div class="tf-buttons">
+      <button class="tf-btn" id="tf-true" onclick="tfClick(true)">✅ Doğru</button>
+      <button class="tf-btn" id="tf-false" onclick="tfClick(false)">❌ Yanlış</button>
+    </div>`;
+}
+function tfClick(val) {
+  if (gameState.answered) return;
+  const g = GAMES[order[current]];
+  const trueBtn = document.getElementById('tf-true');
+  const falseBtn = document.getElementById('tf-false');
+  trueBtn.disabled = falseBtn.disabled = true;
+  const isCorrect = val === g.answer;
+  if (isCorrect) {
+    (val ? trueBtn : falseBtn).classList.add('correct-pick');
+  } else {
+    (val ? trueBtn : falseBtn).classList.add('wrong-pick');
+    (g.answer ? trueBtn : falseBtn).classList.add('correct-pick');
+  }
+  showFeedback(g.tip, isCorrect);
+}
+
+// ══════ MCQ ══════
+function buildMCQ(g) {
+  return `<div class="mcq-options">` +
+    g.options.map((o, i) => `<button class="mcq-opt" id="mq-${i}" onclick="mcqClick(${i})">${o}</button>`).join('') +
+    `</div>`;
+}
+function mcqClick(idx) {
+  if (gameState.answered) return;
+  const g = GAMES[order[current]];
+  document.querySelectorAll('.mcq-opt').forEach(b => b.disabled = true);
+  const isCorrect = idx === g.correct;
+  document.getElementById('mq-' + g.correct).classList.add('correct');
+  if (!isCorrect) document.getElementById('mq-' + idx).classList.add('wrong');
+  showFeedback(g.tip, isCorrect);
+}
+
+// ══════ MATCH ══════
+function buildMatch(g) {
+  const lefts = shuffle(g.pairs.map((p, i) => ({ text: p[0], id: i })));
+  const rights = shuffle(g.pairs.map((p, i) => ({ text: p[1], id: i })));
+  gameState.matchLeft = lefts;
+  gameState.matchRight = rights;
+  gameState.matchSel = null;
+  gameState.matchDone = 0;
+  return `<div class="match-grid">
+    <div class="match-col" id="match-left">
+      ${lefts.map((l, i) => `<div class="match-item match-left" id="ml-${i}" onclick="matchClick('l',${i})">${l.text}</div>`).join('')}
+    </div>
+    <div class="match-col" id="match-right">
+      ${rights.map((r, i) => `<div class="match-item match-right" id="mr-${i}" onclick="matchClick('r',${i})">${r.text}</div>`).join('')}
+    </div>
+  </div>`;
+}
+function matchClick(side, idx) {
+  if (gameState.answered) return;
+  const el = document.getElementById((side === 'l' ? 'ml-' : 'mr-') + idx);
+  if (el.classList.contains('matched')) return;
+  if (!gameState.matchSel) {
+    el.classList.add('selected');
+    gameState.matchSel = { side, idx };
+  } else {
+    const prev = gameState.matchSel;
+    if (prev.side === side) {
+      document.getElementById((prev.side === 'l' ? 'ml-' : 'mr-') + prev.idx).classList.remove('selected');
+      el.classList.add('selected');
+      gameState.matchSel = { side, idx };
+      return;
+    }
+    const lIdx = side === 'l' ? idx : prev.idx;
+    const rIdx = side === 'r' ? idx : prev.idx;
+    const lId = gameState.matchLeft[lIdx].id;
+    const rId = gameState.matchRight[rIdx].id;
+    const lEl = document.getElementById('ml-' + lIdx);
+    const rEl = document.getElementById('mr-' + rIdx);
+    lEl.classList.remove('selected'); rEl.classList.remove('selected');
+    if (lId === rId) {
+      lEl.classList.add('matched'); rEl.classList.add('matched');
+      gameState.matchDone++;
+      if (gameState.matchDone === GAMES[order[current]].pairs.length) showFeedback(GAMES[order[current]].tip);
+    } else {
+      lEl.classList.add('wrong'); rEl.classList.add('wrong');
+      setTimeout(() => { lEl.classList.remove('wrong'); rEl.classList.remove('wrong'); }, 500);
+    }
+    gameState.matchSel = null;
+  }
+}
+
+// ══════ SLIDER ══════
+function buildSlider(g) {
+  const defaultVal = g.defaultValue || Math.round((g.min + g.max) / 2);
+  return `<div class="slider-q">${g.instruction}</div>
+    <div class="slider-wrap">
+      <div class="slider-val" id="slv">${defaultVal}</div>
+      <div class="slider-unit">${g.unit}</div>
+      <input type="range" id="sli" min="${g.min}" max="${g.max}" value="${defaultVal}" oninput="document.getElementById('slv').textContent=this.value">
+      <div class="slider-labels"><span>${g.min}${g.unit}</span><span>${g.max}${g.unit}</span></div>
+    </div>
+    <button class="btn-check" onclick="sliderCheck()">Kontrol Et ✓</button>`;
+}
+function sliderCheck() {
+  if (gameState.answered) return;
+  const g = GAMES[order[current]];
+  const val = parseInt(document.getElementById('sli').value);
+  const isCorrect = Math.abs(val - g.correct) <= g.tolerance;
+  document.getElementById('sli').disabled = true;
+  showFeedback(g.tip, isCorrect);
+}
+
+// ══════ FILL ══════
+function buildFill(g) {
+  return `<div class="fill-sentence">${g.before}<span class="fill-blank" id="fill-blank">___</span>${g.after}</div>
+    <div class="fill-options">` +
+    shuffle(g.options).map(o => `<button class="fill-opt" onclick="fillClick(this,'${o.replace(/'/g,"\\'")}','${g.blank.replace(/'/g,"\\'")}','${g.tip.replace(/'/g,"\\'")}')">${o}</button>`).join('') +
+    `</div>`;
+}
+function fillClick(btn, val, correct, tip) {
+  if (gameState.answered) return;
+  document.querySelectorAll('.fill-opt').forEach(b => b.disabled = true);
+  const isCorrect = val === correct;
+  if (isCorrect) {
+    btn.classList.add('selected-correct');
+    document.getElementById('fill-blank').textContent = val;
+    document.getElementById('fill-blank').style.color = 'var(--green)';
+  } else {
+    btn.classList.add('selected-wrong');
+    document.querySelectorAll('.fill-opt').forEach(b => { if (b.textContent === correct) b.classList.add('selected-correct'); });
+    document.getElementById('fill-blank').textContent = correct;
+    document.getElementById('fill-blank').style.color = 'var(--green)';
+  }
+  showFeedback(tip, isCorrect);
+}
+
+// ══════ MEMORY ══════
+function buildMemory(g) {
+  const cards = shuffle([...g.pairs.map((p,i) => ({id:i,face:p[0],type:'emoji'})), ...g.pairs.map((p,i) => ({id:i,face:p[1],type:'text'}))]);
+  gameState.memFlipped = [];
+  gameState.memMatched = 0;
+  gameState.memLocked = false;
+  return `<div class="memory-grid">` +
+    cards.map((c, i) =>
+      `<div class="mem-card" id="mc-${i}" data-id="${c.id}" data-face="${c.face.replace(/"/g,'&quot;')}" data-type="${c.type}" onclick="memClick(${i})">
+        <div class="mem-card-inner">
+          <div class="mem-face mem-back">🔮</div>
+          <div class="mem-face mem-front">${c.face}</div>
+        </div>
+      </div>`
+    ).join('') + `</div>`;
+}
+function memClick(idx) {
+  if (gameState.answered || gameState.memLocked) return;
+  const card = document.getElementById('mc-' + idx);
+  if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+  card.classList.add('flipped');
+  gameState.memFlipped.push(idx);
+  if (gameState.memFlipped.length === 2) {
+    gameState.memLocked = true;
+    const [a, b] = gameState.memFlipped.map(i => document.getElementById('mc-' + i));
+    if (a.dataset.id === b.dataset.id && a.dataset.type !== b.dataset.type) {
+      setTimeout(() => {
+        a.classList.add('matched'); b.classList.add('matched');
+        gameState.memFlipped = [];
+        gameState.memMatched++;
+        gameState.memLocked = false;
+        if (gameState.memMatched === GAMES[order[current]].pairs.length) showFeedback(GAMES[order[current]].tip);
+      }, 500);
+    } else {
+      setTimeout(() => {
+        a.classList.remove('flipped'); b.classList.remove('flipped');
+        gameState.memFlipped = [];
+        gameState.memLocked = false;
+      }, 900);
+    }
+  }
+}
+
+// ══════ ANAGRAM ══════
+let activeSelectedChar = null;
+function buildAnagram(g) {
+  gameState.anagramWords = shuffle(g.words.map((w, i) => ({ word: w.toUpperCase(), idx: i })));
+  gameState.anagramSolved = [];
+  activeSelectedChar = null;
+  return `<div>` +
+    gameState.anagramWords.map((wordObj, wordIdx) => {
+      const word = wordObj.word;
+      const chars = shuffle(word.split(''));
+      return `<div class="anagram-puzzle" id="puzzle-wrap-${wordIdx}">
+        <div class="anagram-scrambled-pool" id="pool-${wordIdx}">
+         ${chars.map((char, charIdx) =>
+          `<div class="anagram-char"
+            onclick="anagramCharClick(this, ${wordIdx}, ${charIdx}, '${char}')"
+            data-char="${char}"
+            data-word-id="${wordIdx}"
+            data-char-id="${charIdx}">
+            ${char}
+          </div>`
+        ).join('')}
+        </div>
+        <div class="anagram-slots" id="slots-${wordIdx}">
+          ${word.split('').map((_, slotIdx) =>
+            `<div class="anagram-slot" data-word-id="${wordIdx}" data-slot-id="${slotIdx}" onclick="anagramSlotClick(${wordIdx}, ${slotIdx})"></div>`
+          ).join('')}
+        </div>
+        <div class="anagram-answer" id="answer-${wordIdx}" style="display:none">${word}</div>
+      </div>`;
+    }).join('') + `</div>`;
+}
+function anagramCharClick(el, wordId, charId, char) {
+  if (gameState.answered) return;
+  if (el.style.opacity === '0.3') return;
+  document.querySelectorAll('.anagram-char').forEach(c => c.classList.remove('selected'));
+  if (activeSelectedChar && activeSelectedChar.element === el) { activeSelectedChar = null; return; }
+  el.classList.add('selected');
+  activeSelectedChar = { element: el, wordId, charId, char };
+}
+function anagramSlotClick(wordId, slotId) {
+  if (gameState.answered) return;
+  const slot = document.querySelector(`[data-word-id="${wordId}"][data-slot-id="${slotId}"]`);
+  if (!slot) return;
+  if (slot.textContent) {
+    const oldChar = slot.textContent;
+    const oldCharId = slot.dataset.fromCharId;
+    const poolCharDiv = document.querySelector(`#pool-${wordId} .anagram-char[data-char="${oldChar}"][data-char-id="${oldCharId}"]`);
+    if (poolCharDiv) { poolCharDiv.style.opacity = '1'; poolCharDiv.style.pointerEvents = 'auto'; }
+    slot.textContent = ''; slot.classList.remove('filled'); slot.removeAttribute('data-from-char-id');
+    checkAnagramAnswer(wordId);
+    return;
+  }
+  if (activeSelectedChar) {
+    if (activeSelectedChar.wordId !== wordId) return;
+    slot.textContent = activeSelectedChar.char;
+    slot.classList.add('filled');
+    slot.dataset.fromCharId = activeSelectedChar.charId;
+    activeSelectedChar.element.style.opacity = '0.3';
+    activeSelectedChar.element.style.pointerEvents = 'none';
+    activeSelectedChar.element.classList.remove('selected');
+    activeSelectedChar = null;
+    checkAnagramAnswer(wordId);
+  }
+}
+function checkAnagramAnswer(wordId) {
+  const g = GAMES[order[current]];
+  const targetWord = gameState.anagramWords[wordId].word;
+  const allSlots = document.querySelectorAll(`#slots-${wordId} .anagram-slot`);
+  let enteredWord = '';
+  let complete = true;
+  allSlots.forEach(s => { if (!s.textContent) complete = false; enteredWord += s.textContent; });
+  if (complete) {
+    if (enteredWord === targetWord) {
+      document.getElementById(`answer-${wordId}`).style.display = 'block';
+      allSlots.forEach(s => s.style.pointerEvents = 'none');
+      if (!gameState.anagramSolved.includes(wordId)) gameState.anagramSolved.push(wordId);
+      if (gameState.anagramSolved.length === gameState.anagramWords.length) showFeedback(g.tip, true);
+    } else {
+      allSlots.forEach(s => {
+        const oldChar = s.textContent; const oldCharId = s.dataset.fromCharId;
+        const poolCharDiv = document.querySelector(`#pool-${wordId} .anagram-char[data-char="${oldChar}"][data-char-id="${oldCharId}"]`);
+        if (poolCharDiv) { poolCharDiv.style.opacity = '1'; poolCharDiv.style.pointerEvents = 'auto'; }
+        s.textContent = ''; s.classList.remove('filled'); s.removeAttribute('data-from-char-id');
+      });
+    }
+  }
+}
+
+// ══════ SENTENCE ANAGRAM ══════
+let saSelected = null;
+function buildSentenceAnagram(g) {
+  // g.words: array of uppercase words (harfleri karışacak)
+  // g.fixed: { after: N, text: "22:30'DA" } — N. kelimeden sonra sabit metin gelir
+  gameState.saWords = g.words.map((w, i) => {
+    const chars = shuffle(w.split(''));
+    // Eğer karışık hali orijinalle aynıysa tekrar karıştır
+    let attempts = 0;
+    while (chars.join('') === w && w.length > 1 && attempts < 20) {
+      chars.sort(() => Math.random() - 0.5);
+      attempts++;
+    }
+    return { word: w, chars, solved: false, idx: i };
+  });
+  gameState.saSolved = 0;
+  gameState.saFixed = g.fixed;
+  saSelected = null;
+
+  return `<div id="sa-container">${renderSAWords(g)}</div>`;
+}
+
+function renderSAWords(g) {
+  const words = gameState.saWords;
+  const fixed = gameState.saFixed;
+  let html = `<div class="sa-sentence-preview" id="sa-preview">${getSAPreview()}</div>`;
+  words.forEach((wordObj, wi) => {
+    html += `<div class="sa-puzzle">`;
+    html += `<div style="font-size:.8rem;color:var(--muted);font-weight:700;margin-bottom:.3rem;">Kelime ${wi+1}: ${wordObj.solved ? '<span style="color:var(--green)">✓ '+wordObj.word+'</span>' : '?'.repeat(wordObj.word.length)}</div>`;
+    // Pool (karışık harfler)
+    html += `<div class="sa-pool" id="sa-pool-${wi}">`;
+    wordObj.chars.forEach((ch, ci) => {
+      const hidden = wordObj.solved ? 'style="opacity:0.3;pointer-events:none"' : '';
+      html += `<div class="sa-char" id="sa-char-${wi}-${ci}" data-wi="${wi}" data-ci="${ci}" onclick="saCharClick(${wi},${ci})" ${hidden}>${ch}</div>`;
+    });
+    html += `</div>`;
+    // Slots
+    html += `<div class="sa-slots" id="sa-slots-${wi}">`;
+    wordObj.word.split('').forEach((_, si) => {
+      html += `<div class="sa-slot" id="sa-slot-${wi}-${si}" data-wi="${wi}" data-si="${si}" onclick="saSlotClick(${wi},${si})"></div>`;
+    });
+    html += `</div>`;
+    html += `</div>`;
+    // Fixed text badge after specified word
+    if (fixed && fixed.after === wi + 1) {
+      html += `<div style="text-align:center;margin:.4rem 0"><span class="sa-fixed-badge">${fixed.text}</span></div>`;
+    }
+  });
+  return html;
+}
+
+function getSAPreview() {
+  const words = gameState.saWords;
+  const fixed = gameState.saFixed;
+  let parts = [];
+  words.forEach((w, i) => {
+    if (w.solved) {
+      parts.push(`<span class="sa-solved">${w.word}</span>`);
+    } else {
+      parts.push('_'.repeat(w.word.length));
+    }
+    if (fixed && fixed.after === i + 1) {
+      parts.push(`<span style="color:#7C3AED;font-weight:900">${fixed.text}</span>`);
+    }
+  });
+  return parts.join(' ');
+}
+
+function saCharClick(wi, ci) {
+  if (gameState.answered) return;
+  const el = document.getElementById(`sa-char-${wi}-${ci}`);
+  if (!el || el.style.opacity === '0.3') return;
+  document.querySelectorAll('.sa-char').forEach(c => c.classList.remove('selected'));
+  if (saSelected && saSelected.wi === wi && saSelected.ci === ci) { saSelected = null; return; }
+  el.classList.add('selected');
+  saSelected = { wi, ci, char: gameState.saWords[wi].chars[ci] };
+}
+
+function saSlotClick(wi, si) {
+  if (gameState.answered) return;
+  const slot = document.getElementById(`sa-slot-${wi}-${si}`);
+  if (!slot) return;
+  // Eğer slotta zaten harf varsa geri al
+  if (slot.dataset.fromCi !== undefined && slot.textContent) {
+    const oldCi = parseInt(slot.dataset.fromCi);
+    const charEl = document.getElementById(`sa-char-${wi}-${oldCi}`);
+    if (charEl) { charEl.style.opacity = '1'; charEl.style.pointerEvents = 'auto'; }
+    slot.textContent = '';
+    slot.classList.remove('filled');
+    delete slot.dataset.fromCi;
+    checkSAWord(wi);
+    return;
+  }
+  if (saSelected && saSelected.wi === wi) {
+    slot.textContent = saSelected.char;
+    slot.classList.add('filled');
+    slot.dataset.fromCi = saSelected.ci;
+    const charEl = document.getElementById(`sa-char-${wi}-${saSelected.ci}`);
+    if (charEl) { charEl.style.opacity = '0.3'; charEl.style.pointerEvents = 'none'; charEl.classList.remove('selected'); }
+    saSelected = null;
+    checkSAWord(wi);
+  }
+}
+
+function checkSAWord(wi) {
+  const wordObj = gameState.saWords[wi];
+  const slots = document.querySelectorAll(`#sa-slots-${wi} .sa-slot`);
+  let entered = '';
+  let complete = true;
+  slots.forEach(s => { if (!s.textContent) complete = false; entered += s.textContent; });
+  if (!complete) return;
+  if (entered === wordObj.word) {
+    // Doğru!
+    wordObj.solved = true;
+    slots.forEach(s => s.style.pointerEvents = 'none');
+    gameState.saSolved++;
+    // Label güncelle
+    const labelEl = document.querySelector(`#sa-pool-${wi}`).previousElementSibling;
+    if (labelEl) labelEl.innerHTML = `<span style="color:var(--green);font-weight:700">✓ ${wordObj.word}</span>`;
+    // Preview güncelle
+    const preview = document.getElementById('sa-preview');
+    if (preview) preview.innerHTML = getSAPreview();
+    // Hepsini çözdü mü?
+    if (gameState.saSolved === gameState.saWords.length) {
+      showFeedback(GAMES[order[current]].tip, true);
+    }
+  } else {
+    // Yanlış — tüm slotları temizle
+    slots.forEach(s => {
+      if (s.dataset.fromCi !== undefined) {
+        const ci = parseInt(s.dataset.fromCi);
+        const charEl = document.getElementById(`sa-char-${wi}-${ci}`);
+        if (charEl) { charEl.style.opacity = '1'; charEl.style.pointerEvents = 'auto'; }
+        s.textContent = ''; s.classList.remove('filled'); delete s.dataset.fromCi;
+      }
+    });
+  }
+}
+
+buildDots();
+updateDots();
+</script>
+</body>
+</html>

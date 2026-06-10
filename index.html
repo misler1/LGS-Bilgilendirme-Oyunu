@@ -256,11 +256,11 @@ const GAMES = [
   // 3 — ANAGRAM | Bir gün önce: uyku saati
   {
     category: "😴 Bir Gün Önce", catColor: "#7C3AED", catBg: "#EDE9FE",
-    type: "sentence_anagram",
-    title: "Cümleyi Düzelt!",
-    instruction: "Harflerin yeri karışmış! Her kelimeyi doğru sıraya getir and gizli tavsiyeyi bul.",
-    words: ["EN", "GEÇ", "SAAT", "YATMAYA", "ÇALIŞ"],
-    fixed: { after: 3, text: "22:30'DA" },
+    type: "wordsort",
+    title: "Tavsiyeyi Oluştur!",
+    instruction: "Aşağıdaki kelimelere sırasıyla tıklayarak anlamlı ve doğru cümleyi kur.",
+    words: ["EN", "GEÇ", "22:30'DA", "YATMAYA", "ÇALIŞ"],
+    correctOrder: ["EN", "GEÇ", "22:30'DA", "YATMAYA", "ÇALIŞ"],
     tip: "✨ Sınavdan önceki akşam en geç 22:30'da yatmaya çalış. Uyku; hafıza, dikkat ve karar alma için en güçlü destekçidir. Geç uyumak ertesi gün performansını olumsuz etkiler."
   },
 
@@ -294,11 +294,15 @@ const GAMES = [
   // 6 — ANAGRAM | Sınav sabahı: kaç dakika önce binada ol
   {
     category: "🌅 Sınav Sabahı", catColor: "#0D9488", catBg: "#CCFBF1",
-    type: "sentence_anagram",
-    title: "Cümleyi Düzelt!",
-    instruction: "Harflerin yeri karışmış! Her kelimeyi doğru sıraya getir and gizli tavsiyeyi bul.",
-    words: ["SINAV", "BİNASINA", "DAKİKA", "ÖNCE", "GİTMİŞ", "OL"],
-    fixed: { after: 2, text: "25-30" },
+    type: "slider",
+    title: "Zaman Yönetimi ⏱️",
+    instruction: "Sınav sabahı olası sürprizleri engellemek ve sakin kalabilmek için sınav binasına sınav saatinden en az kaç dakika önce gitmiş olmalısın?",
+    min: 5,
+    max: 60,
+    defaultValue: 10,
+    correct: 30, // 25-30 baremi için merkez nokta 30 seçildi
+    tolerance: 5, // 25 ile 35 arası kabul edilir
+    unit: " dakika",
     tip: "✨ En az 25-30 dakika önce sınav binasında ol. Trafik, yanlış giriş, uzak otopark — bunlar sabah sürpriz yaratabilir. Kapıya koşarak girmek stresi artırır."
   },
 
